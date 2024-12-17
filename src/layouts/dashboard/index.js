@@ -34,9 +34,61 @@ import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
 // Dashboard components
 import Projects from "layouts/dashboard/components/Projects";
 import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
+import { createDirectus, authentication, rest, readMe, readItems, readSingleton } from "@directus/sdk";
+import { useEffect, useState } from "react";
+import TaskList from "./components/Tasks";
 
 function Dashboard() {
   const { sales, tasks } = reportsLineChartData;
+  const directus = createDirectus("http://159.146.31.32:8055/").with(rest());
+  const [taskList, setTaskList] = useState([]);
+  const [eventList, setEventList] = useState([]);
+  const [contactList, setContactList] = useState([]);
+  const [advertList, setAdvertList] = useState([]);
+
+  const getData = async () => {
+    try {
+      
+      const taskResponse = await directus.request(
+        readItems('task', {
+          fields: ['*'],
+        })
+      );
+      
+
+      const eventsResponse = await directus.request(
+        readItems('etkinlik_takvimi', {
+          fields: ['*'],
+        })
+      );
+
+      const contactsResponse = await directus.request(
+        readItems('telefon_rehberi', {
+          fields: ['*'],
+        })
+      );
+
+
+      const residentalResponse = await directus.request(
+        readItems('konutilan', {
+          fields: ['*'],
+        })
+      );
+      setTaskList(taskResponse)
+      setEventList(eventsResponse)
+      setContactList(contactsResponse)
+      setAdvertList(residentalResponse)
+
+    } catch (err) {
+      console.error("task failed:", err);
+    
+    }
+  };
+  useEffect(() => {
+    getData();
+
+  }, [])
+
 
   return (
     <DashboardLayout>
@@ -48,12 +100,12 @@ function Dashboard() {
               <ComplexStatisticsCard
                 color="dark"
                 icon="weekend"
-                title="Bookings"
-                count={281}
+                title="Görevler"
+                count={taskList !== null ? taskList.length : 0}
                 percentage={{
                   color: "success",
-                  amount: "+55%",
-                  label: "than lask week",
+                  amount: "",
+                  label: "en güncel",
                 }}
               />
             </MDBox>
@@ -62,12 +114,12 @@ function Dashboard() {
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 icon="leaderboard"
-                title="Today's Users"
-                count="2,300"
+                title="Etkinlik Takvimi"
+                count={eventList !== null ? eventList.length : 0}
                 percentage={{
                   color: "success",
-                  amount: "+3%",
-                  label: "than last month",
+                  amount: "",
+                  label: "en gücel",
                 }}
               />
             </MDBox>
@@ -77,12 +129,12 @@ function Dashboard() {
               <ComplexStatisticsCard
                 color="success"
                 icon="store"
-                title="Revenue"
-                count="34k"
+                title="İlanlar"
+                count={advertList !== null ? advertList.length : 0}
                 percentage={{
                   color: "success",
-                  amount: "+1%",
-                  label: "than yesterday",
+                  amount: "",
+                  label: "en güncel",
                 }}
               />
             </MDBox>
@@ -92,18 +144,17 @@ function Dashboard() {
               <ComplexStatisticsCard
                 color="primary"
                 icon="person_add"
-                title="Followers"
-                count="+91"
+                title="Telefon Rehberi"
+                count={contactList !== null ? contactList.length : 0}
                 percentage={{
                   color: "success",
-                  amount: "",
-                  label: "Just updated",
+                  
                 }}
               />
             </MDBox>
           </Grid>
         </Grid>
-        <MDBox mt={4.5}>
+        {/* <MDBox mt={4.5}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6} lg={4}>
               <MDBox mb={3}>
@@ -143,11 +194,11 @@ function Dashboard() {
               </MDBox>
             </Grid>
           </Grid>
-        </MDBox>
+        </MDBox> */}
         <MDBox>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6} lg={8}>
-              <Projects />
+              <TaskList />
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
               <OrdersOverview />
